@@ -71,11 +71,11 @@ Lalu sesuaikan isinya dengan konfigurasi MySQL di komputer kamu:
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
-DB_NAME=todo_app
+DB_NAME=todo_db
 
 PORT=5000
 
-JWT_SECRET=ganti_dengan_kunci_rahasia_yang_panjang_dan_acak
+JWT_SECRET=faishalganteng
 ```
 
 | Variabel      | Keterangan                                              |
@@ -83,7 +83,7 @@ JWT_SECRET=ganti_dengan_kunci_rahasia_yang_panjang_dan_acak
 | `DB_HOST`     | Host database MySQL (biasanya `localhost`)                |
 | `DB_USER`     | Username MySQL (default XAMPP: `root`)                    |
 | `DB_PASSWORD` | Password MySQL (default XAMPP: kosong)                    |
-| `DB_NAME`     | Nama database yang dipakai (`todo_app`)                   |
+| `DB_NAME`     | Nama database yang dipakai (`todo_db`)                   |
 | `PORT`        | Port tempat server Express berjalan                        |
 | `JWT_SECRET`  | Kunci rahasia untuk sign & verify JWT (buat yang unik!)    |
 
@@ -105,7 +105,7 @@ mysql -u root -p < database.sql
 ```
 
 Script ini akan otomatis membuat:
-- Database `todo_app`
+- Database `todo_db`
 - Tabel `users` (id, username, email, password, created_at)
 - Tabel `todos` (id, user_id, task, is_done, created_at)
 
