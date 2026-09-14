@@ -1,8 +1,8 @@
 -- Tugas #4 - Todo App Database Setup
 -- Jalankan query ini di tab SQL phpMyAdmin
 
-CREATE DATABASE IF NOT EXISTS todo_db;
-USE todo_db;
+CREATE DATABASE IF NOT EXISTS backend;
+USE backend;
 
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
