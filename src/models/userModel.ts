@@ -13,7 +13,15 @@ export const findUserByEmail = async (email: string): Promise<User | null> => {
     "SELECT * FROM users WHERE email = ? LIMIT 1",
     [email]
   );
-  return rows.length > 0 ? rows[0] : null;
+  return rows[0] ?? null;
+};
+
+export const findUserByUsername = async (username: string): Promise<User | null> => {
+  const [rows] = await pool.query<User[]>(
+    "SELECT * FROM users WHERE username = ? LIMIT 1",
+    [username]
+  );
+  return rows[0] ?? null;
 };
 
 export const createUser = async (

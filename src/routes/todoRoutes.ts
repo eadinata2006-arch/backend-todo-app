@@ -1,23 +1,22 @@
 import { Router } from 'express';
 import { 
   getTodos, 
-  getTodoByIdHandler,
-  createTodoHandler, 
-  updateTodoHandler, 
-  deleteTodoHandler 
+  getTodoById, 
+  createTodo, 
+  updateTodo, 
+  deleteTodo 
 } from '../controllers/todoController';
+import { verifyToken } from '../middlewares/authMiddleware';
 import { validateTodo, validateUpdateTodo } from '../middlewares/validator';
 
 const router = Router();
 
+router.use(verifyToken);
+
 router.get('/', getTodos);
-
-router.get('/:id', getTodoByIdHandler);
-
-router.post('/', validateTodo, createTodoHandler);
-
-router.put('/:id', validateUpdateTodo, updateTodoHandler);
-
-router.delete('/:id', deleteTodoHandler);
+router.get('/:id', getTodoById);
+router.post('/', validateTodo, createTodo);
+router.put('/:id', validateUpdateTodo, updateTodo);
+router.delete('/:id', deleteTodo);
 
 export default router;

@@ -1,57 +1,52 @@
-import { Request, Response } from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { findUserByEmail, createUser } from "../models/userModel.js";
+import type { Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import * as UserModel from '../models/userModel';
+import type { RegisterRequest, LoginRequest, JwtUserPayload } from '../types/auth';
+import { sendSuccess, sendError } from '../utils/response';
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
+  const payload: RegisterRequest = req.body;
+
   try {
-    const { username, email, password } = req.body;
-
-    const existingUser = await findUserByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({ message: "Email sudah terdaftar" });
+    const hashedPassword = await bcrypt.hash(payload.password, 10);
+    // Jika nama fungsi di userModel.ts adalah createUser, panggil seperti ini:
+    await UserModel.createUser(payload.username, payload.email, hashedPassword);
+    sendSuccess(res, 'Registrasi berhasil!', null, 201);
+  } catch (error: any) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      sendError(res, 'Username atau Email sudah terdaftar!', 409);
+      return;
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = await createUser(username, email, hashedPassword);
-
-    return res.status(201).json({
-      message: "Registrasi berhasil",
-      userId,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    sendError(res, 'Error server.', 500);
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
+  const payload: LoginRequest = req.body;
+
   try {
-    const { email, password } = req.body;
+    const user = await UserModel.findUserByUsername(payload.username);
 
-    const user = await findUserByEmail(email);
-    if (!user) {
-      return res.status(401).json({ message: "Email atau password salah" });
+    if (!user || !(await bcrypt.compare(payload.password, user.password))) {
+      sendError(res, 'Username atau password salah!', 401);
+      return;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Email atau password salah" });
-    }
+    const tokenPayload: JwtUserPayload = {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    };
 
     const token = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }
+      tokenPayload, 
+      process.env.JWT_SECRET as string, 
+      { expiresIn: '2h' }
     );
 
-    return res.status(200).json({
-      message: "Login berhasil",
-      token,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    sendSuccess(res, 'Login berhasil!', { token });
+  } catch {
+    sendError(res, 'Error server.', 500);
   }
 };

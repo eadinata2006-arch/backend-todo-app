@@ -1,64 +1,53 @@
-import pool from "../config/db.js";
-import { RowDataPacket, ResultSetHeader } from "mysql2";
+import pool from '../config/db.js';
 
-export interface Todo extends RowDataPacket {
-  id: number;
-  user_id: number;
-  task: string;
-  is_completed: boolean;
-  created_at: string;
-}
+export const TodoModel = {
+  getByUserId: async (userId: number, limit: number, offset: number) => {
+    const [rows] = await pool.query(
+      'SELECT * FROM todos WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?',
+      [userId, limit, offset]
+    );
+    return rows;
+  },
 
-export const getTodosByUserId = async (userId: number): Promise<Todo[]> => {
-  const [rows] = await pool.query<Todo[]>(
-    "SELECT * FROM todos WHERE user_id = ? ORDER BY created_at DESC",
-    [userId]
-  );
-  return rows;
-};
+  countByUserId: async (userId: number) => {
+    const [rows]: any = await pool.query(
+      'SELECT COUNT(*) AS total FROM todos WHERE user_id = ?',
+      [userId]
+    );
+    return rows[0].total as number;
+  },
 
-export const createTodo = async (
-  userId: number,
-  task: string
-): Promise<number> => {
-  const [result] = await pool.query<ResultSetHeader>(
-    "INSERT INTO todos (user_id, task) VALUES (?, ?)",
-    [userId, task]
-  );
-  return result.insertId;
-};
+  getById: async (id: number, userId: number) => {
+    const [rows]: any = await pool.query(
+      'SELECT * FROM todos WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return rows[0]; // Kembalikan 1 data, atau undefined jika tidak ditemukan
+  },
 
-export const updateTodo = async (
-  id: number,
-  task: string,
-  isCompleted: boolean,
-  userId: number
-): Promise<number> => {
-  const [result] = await pool.query<ResultSetHeader>(
-    "UPDATE todos SET task = ?, is_completed = ? WHERE id = ? AND user_id = ?",
-    [task, isCompleted, id, userId]
-  );
-  return result.affectedRows;
-};
+  create: async (userId: number, task: string) => {
+    const [result]: any = await pool.query(
+      'INSERT INTO todos (user_id, task) VALUES (?, ?)',
+      [userId, task]
+    );
+    return result.insertId;
+  },
 
-export const deleteTodo = async (
-  id: number,
-  userId: number
-): Promise<number> => {
-  const [result] = await pool.query<ResultSetHeader>(
-    "DELETE FROM todos WHERE id = ? AND user_id = ?",
-    [id, userId]
-  );
-  return result.affectedRows;
-};
+  // Update task atau status is_completed
+  update: async (id: number, task: string, isCompleted: boolean, userId: number) => {
+    const [result]: any = await pool.query(
+      'UPDATE todos SET task = ?, is_completed = ? WHERE id = ? AND user_id = ?',
+      [task, isCompleted, id, userId]
+    );
+    return result.affectedRows;
+  },
 
-export const getTodoById = async (
-  id: number,
-  userId: number
-): Promise<Todo | undefined> => {
-  const [rows] = await pool.query<Todo[]>(
-    "SELECT * FROM todos WHERE id = ? AND user_id = ?",
-    [id, userId]
-  );
-  return rows[0];
+  // Hapus todo berdasarkan id dan userId
+  delete: async (id: number, userId: number) => {
+    const [result]: any = await pool.query(
+      'DELETE FROM todos WHERE id = ? AND user_id = ?',
+      [id, userId]
+    );
+    return result.affectedRows;
+  }
 };
